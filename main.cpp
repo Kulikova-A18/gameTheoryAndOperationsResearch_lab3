@@ -37,6 +37,8 @@ namespace gameTheoryAndOperationsResearch {
         x = ((c*e / (2 * b) - d) / (2 * a - c * c / (2 * b)));
         y = ((c*d / (2 * a) - e) / (2 * b - c * c / (2 * a)));
 
+
+
 //        fout << "Kulikova Alyona - v4\n";
         fout << "Analitika: " << std::endl;
         fout << "x = " << x
@@ -47,8 +49,11 @@ namespace gameTheoryAndOperationsResearch {
              << ") = " << H(x, y)
              << std::endl;
 
+
+
         // Численный метод
         int N = 2;
+        int N_END = 0;
         double minMax, maxMin;
         int i, j; // Индексы
         while (true)
@@ -61,7 +66,7 @@ namespace gameTheoryAndOperationsResearch {
 
             // Заполняем матрицу игры и выводим ее на экран
             fout << std::endl;
-            fout << "[" << "N = " << N << "]" << std::endl;
+            fout << "[" << "#" << N_END << "(N=" << N << ")]" << std::endl;
             for (int i = 0; i <= N; i++, x+=h)
             {
                 Matr[i] = new double[N + 1];
@@ -69,10 +74,12 @@ namespace gameTheoryAndOperationsResearch {
                 for (int j = 0; j <= N; j++, y += h)
                 {
                     Matr[i][j] = H(x, y);
-                    fout << std::fixed << std::setprecision(3)
-                         << std::setw(10) << Matr[i][j];
+                    if(N <= 10)
+                        fout << std::fixed << std::setprecision(3)
+                             << std::setw(10) << Matr[i][j];
                 }
-                fout << std::endl;
+                if(N <= 10)
+                    fout << std::endl;
             }
 
             fout << std::endl;
@@ -89,7 +96,6 @@ namespace gameTheoryAndOperationsResearch {
 
             if (maxMin == minMax) {
                 // Проверяем наличие седловой точки
-//                fout << "Saddle point - Yes (maxMin == minMax)" << std::endl;
                 fout << "* There is a saddle point (maxMin == minMax)" << std::endl;
                 fout << "H(" << h * i << ", "
                      << h * j << ") = "
@@ -100,8 +106,15 @@ namespace gameTheoryAndOperationsResearch {
                 double x_sr = 0;
                 x = 0;
 
-                for (int i = 0; i <= N; i++, x += h)
-                    x_sr += x * p[i];
+                /**
+                 *  исправлена ошибка, где при старте сразу же происходит умножение и из-за этого
+                 *  х имеет большое значение
+                 */
+
+                if(N > 2)
+                    for (int i = 0; i <= N; i++, x += h) {
+                        x_sr += x * p[i];
+                    }
 
                 double y_sr = 0;
                 y = 0;
@@ -113,21 +126,15 @@ namespace gameTheoryAndOperationsResearch {
                      << " y = " << y_sr
                      << " H = " << minMax
                      << std::endl;
-
-                if (N >= 10)
-                    break;
             }
             else
             {
                 fout << "* No saddle point (maxMin != minMax), solution by Brown-Robinson method:" << std::endl;
-//                fout << "Saddle point - No (maxMin != minMax)" << std::endl; // Sedlovaya tochka
-//                fout << std::endl;
-//                fout << "Braun Robinson" << std::endl;
 
                 // Применяем алгоритм Брауна-Робинсона для решения матричной игры
                 class_braun_robinson.braun_robinson(Matr, p, q, N + 1, N + 1, minMax, maxMin, fout);
-                class_print_main.print_vector(fout, (char *)"p", p, N + 1);
-                class_print_main.print_vector(fout, (char *)"q", q, N + 1);
+                if(N <= 10) class_print_main.print_vector(fout, (char *)"p", p, N + 1);
+                if(N <= 10) class_print_main.print_vector(fout, (char *)"q", q, N + 1);
 
                 // Вычисляем среднее взвешенное значение
                 double x_sr = 0;
@@ -146,10 +153,11 @@ namespace gameTheoryAndOperationsResearch {
                      << " y = " << y_sr
                      << " H = " << minMax
                      << std::endl;
-
-                if (N >= 10)
-                    break;
             }
+
+            if (N_END >= 30)
+                break;
+            N_END++; // :)
 
             delete[] p;
             delete[] q;
